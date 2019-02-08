@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace cslox
 {
-    class Lox
+    public class Lox
     {
         static Boolean hadError = false;
         static void Main(string[] args)
