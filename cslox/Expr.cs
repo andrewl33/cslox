@@ -4,8 +4,16 @@ using System.Text;
 
 namespace cslox
 {
+	public interface IVisitor<R>
+	{
+		R VisitBinaryExpr(Binary expr);
+		R VisitGroupingExpr(Grouping expr);
+		R VisitLiteralExpr(Literal expr);
+		R VisitUnaryExpr(Unary expr);
+	}
 	public abstract class Expr
 	{
+		public abstract R Accept<R>(IVisitor<R> visitor);
 	}
 	public class Binary : Expr
 	{
@@ -18,6 +26,10 @@ namespace cslox
 			this.op = op;
 			this.right = right;
 		}
+		public override R Accept<R>(IVisitor<R> visitor)
+		{
+			return visitor.VisitBinaryExpr(this);
+		}
 	}
 
 	public class Grouping : Expr
@@ -27,6 +39,10 @@ namespace cslox
 		{
 			this.expression = expression;
 		}
+		public override R Accept<R>(IVisitor<R> visitor)
+		{
+			return visitor.VisitGroupingExpr(this);
+		}
 	}
 
 	public class Literal : Expr
@@ -35,6 +51,10 @@ namespace cslox
 		public Literal(Object value)
 		{
 			this.value = value;
+		}
+		public override R Accept<R>(IVisitor<R> visitor)
+		{
+			return visitor.VisitLiteralExpr(this);
 		}
 	}
 
@@ -46,6 +66,10 @@ namespace cslox
 		{
 			this.op = op;
 			this.right = right;
+		}
+		public override R Accept<R>(IVisitor<R> visitor)
+		{
+			return visitor.VisitUnaryExpr(this);
 		}
 	}
 
