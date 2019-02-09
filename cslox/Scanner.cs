@@ -73,7 +73,15 @@ namespace cslox
                 case '/':
                     if (Match('/'))
                     {
-                        while (Peek() != '\n' && IsAtEnd()) Advance();
+                        while (Peek() != '\n' && !IsAtEnd()) Advance();
+                    }
+                    else if (Match('*'))
+                    {
+                        while (!(Peek() != '*' && PeekNext() != '/') && !IsAtEnd())
+                        {
+                            if (Peek() == '\n') line++;
+                            Advance();
+                        }
                     }
                     else
                     {
