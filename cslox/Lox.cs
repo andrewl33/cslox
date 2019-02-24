@@ -6,7 +6,7 @@ namespace cslox
 {
     public class Lox
     {
-        private static Interpreter interpreter = new Interpreter();
+        private static readonly Interpreter interpreter = new Interpreter();
         static bool hadError = false;
         static bool hadRuntimeError = false;
         static void Main(string[] args)
@@ -91,6 +91,7 @@ namespace cslox
         public static void RuntimeError(RuntimeError error)
         {
             Console.Error.WriteLine(error.Message + "\n[line " + error.token.line + "]");
+            hadRuntimeError = true;
         }
     }
 }
