@@ -4,7 +4,7 @@ using System.Text;
 
 namespace cslox
 {
-    class ASTPrinter : Expr.IVisitor<string>
+    public class ASTPrinter : Expr.IVisitor<string>
     {
         public string Print(Expr expr)
         {

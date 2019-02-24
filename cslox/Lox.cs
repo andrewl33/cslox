@@ -6,7 +6,9 @@ namespace cslox
 {
     public class Lox
     {
-        static Boolean hadError = false;
+        private static Interpreter interpreter = new Interpreter();
+        static bool hadError = false;
+        static bool hadRuntimeError = false;
         static void Main(string[] args)
         {
 
@@ -28,6 +30,7 @@ namespace cslox
         private static void RunFile(string path)
         {
             if (hadError) Environment.Exit(65);
+            if (hadRuntimeError) Environment.Exit(70);
 
             if (!File.Exists(path))
             {
@@ -55,11 +58,11 @@ namespace cslox
             Scanner scanner = new Scanner(source);
             List<Token> tokens = scanner.ScanTokens();
             Parser parser = new Parser(tokens);
-            Expr expressions = parser.Parse();
+            Expr expression = parser.Parse();
 
             if (hadError) return;
-
-            Console.WriteLine(new ASTPrinter().Print(expressions));
+            interpreter.Interpret(expression);
+            // Console.WriteLine(new ASTPrinter().Print(expression));
         }
 
         public static void Error(int line, String message)
@@ -83,6 +86,11 @@ namespace cslox
         {
             Console.Error.WriteLine("[line " + line + "] Error" + where + ": " + message);
             hadError = true;
+        }
+
+        public static void RuntimeError(RuntimeError error)
+        {
+            Console.Error.WriteLine(error.Message + "\n[line " + error.token.line + "]");
         }
     }
 }
