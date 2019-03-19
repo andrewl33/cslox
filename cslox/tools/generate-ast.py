@@ -83,5 +83,8 @@ def main():
                         "Literal  : Object value",
                         "Unary    : Token op, Expr right"])
 
+    define_ast("Stmt", ["Expression : Expr expression",
+                        "Print      : Expr expression"])
+
 
 main()
