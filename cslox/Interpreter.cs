@@ -4,18 +4,34 @@ using System.Text;
 
 namespace cslox
 {
-    public class Interpreter : Expr.IVisitor<object>
+    public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
-        public void Interpret(Expr expression)
+        //public void Interpret(Expr expression)
+        //{
+        //    try
+        //    {
+        //        object value = Evaluate(expression);
+        //        Console.WriteLine(Stringify(value));
+        //    } catch (RuntimeError error)
+        //    {
+        //        Lox.RuntimeError(error);
+        //    }
+        //}
+
+        public void Interpret(List<Stmt> statements)
         {
             try
             {
-                object value = Evaluate(expression);
-                Console.WriteLine(Stringify(value));
-            } catch (RuntimeError error)
+                foreach (Stmt statement in statements)
+                {
+                    Execute(statement);
+                }
+            }
+            catch (RuntimeError error)
             {
                 Lox.RuntimeError(error);
             }
+            
         }
 
         object Expr.IVisitor<object>.VisitLiteralExpr(Expr.Literal expr)
@@ -98,6 +114,25 @@ namespace cslox
         private object Evaluate(Expr expr)
         {
             return expr.Accept(this);
+        }
+
+        private void Execute(Stmt stmt)
+        {
+            stmt.Accept(this);
+        }
+
+        object Stmt.IVisitor<object>.VisitExpressionStmt(Stmt.Expression stmt)
+        {
+            object value = Evaluate(stmt.expression);
+            Console.WriteLine(Stringify(value));
+            return null;
+        }
+
+        object Stmt.IVisitor<object>.VisitPrintStmt(Stmt.Print stmt)
+        {
+            object value = Evaluate(stmt.expression);
+            Console.WriteLine(Stringify(value));
+            return null;
         }
 
         private bool IsTruthy(object obj)
