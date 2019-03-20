@@ -15,7 +15,7 @@ namespace cslox
             if (args.Length > 1)
             {
                 Console.WriteLine("Usage: cslox [script]");
-                Environment.Exit(64);
+                System.Environment.Exit(64);
             }
             else if (args.Length == 1)
             {
@@ -29,13 +29,13 @@ namespace cslox
 
         private static void RunFile(string path)
         {
-            if (hadError) Environment.Exit(65);
-            if (hadRuntimeError) Environment.Exit(70);
+            if (hadError) System.Environment.Exit(65);
+            if (hadRuntimeError) System.Environment.Exit(70);
 
             if (!File.Exists(path))
             {
                 Console.WriteLine("File not found");
-                Environment.Exit(72);
+                System.Environment.Exit(72);
             }
             else
             {

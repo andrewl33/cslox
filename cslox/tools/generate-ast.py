@@ -78,13 +78,17 @@ def define_ast(base_name, expressions):
 
 
 def main():
-    define_ast("Expr", ["Binary   : Expr left, Token op, Expr right",
+    define_ast("Expr", ["Assign   : Token name, Expr value",
+                        "Binary   : Expr left, Token op, Expr right",
                         "Grouping : Expr expression",
-                        "Literal  : Object value",
-                        "Unary    : Token op, Expr right"])
+                        "Literal  : object value",
+                        "Unary    : Token op, Expr right",
+                        "Variable : Token name"])
 
-    define_ast("Stmt", ["Expression : Expr expression",
-                        "Print      : Expr expression"])
+    define_ast("Stmt", ["Block      : List<Stmt> statements",
+                        "Expression : Expr expression",
+                        "Print      : Expr expression",
+                        "Var        : Token name, Expr initializer"])
 
 
 main()
