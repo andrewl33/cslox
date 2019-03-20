@@ -4,9 +4,39 @@ using System.Text;
 
 namespace cslox
 {
+
     public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
-        private Environment environment = new Environment();
+        private sealed class Clock : LoxCallable
+        {
+            public override int Arity()
+            {
+                return 0;
+            }
+
+            public override object Call(Interpreter interpreter, List<object> arguments)
+            {
+                return (double)System.Environment.TickCount;
+            }
+
+            public override string ToString()
+            {
+                return "<native fn>";
+            }
+        }
+
+        public readonly Environment globals;
+        private Environment environment;
+
+        public Interpreter()
+        {
+            globals = new Environment();
+            environment = globals;
+
+            // define clock
+            globals.Define("clock", new Clock());
+        }
+
         public void Interpret(List<Stmt> statements)
         {
             try
@@ -120,7 +150,32 @@ namespace cslox
             return null;
         }
 
+        object Expr.IVisitor<object>.VisitCallExpr(Expr.Call expr)
+        {
+            object callee = Evaluate(expr.callee);
 
+            List<object> arguments = new List<object>();
+            foreach (Expr argument in expr.arguments)
+            {
+                arguments.Add(Evaluate(argument));
+            }
+
+            if (!(callee is LoxCallable))
+            {
+                throw new RuntimeError(expr.paren, "Can only call functions and classes.");
+            }
+
+            LoxCallable function = (LoxCallable)callee;
+
+            if (arguments.Count != function.Arity())
+            {
+                throw new RuntimeError(expr.paren, "Expected " +
+                    function.Arity() + " arguments but got " +
+                    arguments.Count + ".");
+            }
+
+            return function.Call(this, arguments);
+        }
         private object Evaluate(Expr expr)
         {
             return expr.Accept(this);
@@ -131,7 +186,7 @@ namespace cslox
             stmt.Accept(this);
         }
 
-        private void ExecuteBlock(List<Stmt> statements, Environment environment)
+        public void ExecuteBlock(List<Stmt> statements, Environment environment)
         {
             Environment previous = this.environment;
             try
@@ -161,6 +216,13 @@ namespace cslox
             return null;
         }
 
+        object Stmt.IVisitor<object>.VisitFunctionStmt(Stmt.Function stmt)
+        {
+            LoxFunction function = new LoxFunction(stmt);
+            environment.Define(stmt.name.lexeme, function);
+            return null;
+        }
+
         object Stmt.IVisitor<object>.VisitIfStmt(Stmt.If stmt)
         {
             if (IsTruthy(Evaluate(stmt.condition)))
@@ -179,6 +241,14 @@ namespace cslox
             object value = Evaluate(stmt.expression);
             Console.WriteLine(Stringify(value));
             return null;
+        }
+
+        object Stmt.IVisitor<object>.VisitReturnStmt(Stmt.Return stmt)
+        {
+            object value = null;
+            if (stmt.value != null) value = Evaluate(stmt.value);
+
+            throw new Return(value);
         }
 
         object Stmt.IVisitor<object>.VisitVarStmt(Stmt.Var stmt)
