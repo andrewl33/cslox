@@ -11,8 +11,10 @@ namespace cslox
 		{
 			R VisitBlockStmt(Block stmt);
 			R VisitExpressionStmt(Expression stmt);
+			R VisitIfStmt(If stmt);
 			R VisitPrintStmt(Print stmt);
 			R VisitVarStmt(Var stmt);
+			R VisitWhileStmt(While stmt);
 		}
 		public class Block : Stmt
 		{
@@ -37,6 +39,23 @@ namespace cslox
 			public override R Accept<R>(IVisitor<R> visitor)
 			{
 				return visitor.VisitExpressionStmt(this);
+			}
+		}
+
+		public class If : Stmt
+		{
+			public readonly Expr condition;
+			public readonly Stmt thenBranch;
+			public readonly Stmt elseBranch;
+			public If(Expr condition, Stmt thenBranch, Stmt elseBranch)
+			{
+				this.condition = condition;
+				this.thenBranch = thenBranch;
+				this.elseBranch = elseBranch;
+			}
+			public override R Accept<R>(IVisitor<R> visitor)
+			{
+				return visitor.VisitIfStmt(this);
 			}
 		}
 
@@ -65,6 +84,21 @@ namespace cslox
 			public override R Accept<R>(IVisitor<R> visitor)
 			{
 				return visitor.VisitVarStmt(this);
+			}
+		}
+
+		public class While : Stmt
+		{
+			public readonly Expr condition;
+			public readonly Stmt body;
+			public While(Expr condition, Stmt body)
+			{
+				this.condition = condition;
+				this.body = body;
+			}
+			public override R Accept<R>(IVisitor<R> visitor)
+			{
+				return visitor.VisitWhileStmt(this);
 			}
 		}
 

@@ -32,6 +32,8 @@ namespace cslox
                 return value;
             }
 
+            if (enclosing != null) return enclosing.Get(name);
+
             throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
         }
 
@@ -39,7 +41,7 @@ namespace cslox
         {
             if (values.ContainsKey(name.lexeme))
             {
-                values.Add(name.lexeme, value);
+                values[name.lexeme] = value;
                 return;
             }
 

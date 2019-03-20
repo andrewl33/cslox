@@ -28,6 +28,21 @@ namespace cslox
             return expr.value;
         }
 
+        object Expr.IVisitor<object>.VisitLogicalExpr(Expr.Logical expr)
+        {
+            object left = Evaluate(expr.left);
+
+            if (expr.op.type == TokenType.OR)
+            {
+                if (IsTruthy(left)) return left;
+            } else
+            {
+                if (!IsTruthy(left)) return left;
+            }
+
+            return Evaluate(expr.right);
+        }
+
         object Expr.IVisitor<object>.VisitGroupingExpr(Expr.Grouping expr)
         {
             return Evaluate(expr.expression);
@@ -142,7 +157,20 @@ namespace cslox
         object Stmt.IVisitor<object>.VisitExpressionStmt(Stmt.Expression stmt)
         {
             object value = Evaluate(stmt.expression);
-            Console.WriteLine(Stringify(value));
+            // Console.WriteLine(Stringify(value));
+            return null;
+        }
+
+        object Stmt.IVisitor<object>.VisitIfStmt(Stmt.If stmt)
+        {
+            if (IsTruthy(Evaluate(stmt.condition)))
+            {
+                Execute(stmt.thenBranch);
+            }
+            else if (stmt.elseBranch != null)
+            {
+                Execute(stmt.elseBranch);
+            }
             return null;
         }
 
@@ -162,6 +190,16 @@ namespace cslox
             }
 
             environment.Define(stmt.name.lexeme, value);
+            return null;
+        }
+
+        object Stmt.IVisitor<object>.VisitWhileStmt(Stmt.While stmt)
+        {
+            while(IsTruthy(Evaluate(stmt.condition)))
+            {
+                Execute(stmt.body);
+            }
+
             return null;
         }
 

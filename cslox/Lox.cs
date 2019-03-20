@@ -11,7 +11,6 @@ namespace cslox
         static bool hadRuntimeError = false;
         static void Main(string[] args)
         {
-
             if (args.Length > 1)
             {
                 Console.WriteLine("Usage: cslox [script]");
