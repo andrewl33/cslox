@@ -27,12 +27,12 @@ namespace cslox
 
         public readonly Environment globals;
         private Environment environment;
-
+        private readonly Dictionary<Expr, int> locals;
         public Interpreter()
         {
             globals = new Environment();
             environment = globals;
-
+            locals = new Dictionary<Expr, int>();
             // define clock
             globals.Define("clock", new Clock());
         }
@@ -96,7 +96,20 @@ namespace cslox
 
         object Expr.IVisitor<object>.VisitVariableExpr(Expr.Variable expr)
         {
-            return environment.Get(expr.name);
+            return LookUpVariable(expr.name, expr);
+        }
+
+
+        private object LookUpVariable(Token name, Expr expr)
+        {
+            if (locals.TryGetValue(expr, out int distance))
+            {
+                return environment.GetAt(distance, name.lexeme);
+            }
+            else
+            {
+                return globals.Get(name);
+            }
         }
 
         object Expr.IVisitor<object>.VisitBinaryExpr(Expr.Binary expr)
@@ -184,6 +197,11 @@ namespace cslox
         private void Execute(Stmt stmt)
         {
             stmt.Accept(this);
+        }
+
+        public void Resolve(Expr expr, int depth)
+        {
+            locals[expr] = depth;
         }
 
         public void ExecuteBlock(List<Stmt> statements, Environment environment)

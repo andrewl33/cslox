@@ -60,6 +60,12 @@ namespace cslox
             List<Stmt> statements = parser.Parse();
 
             if (hadError) return;
+
+            Resolver resolver = new Resolver(interpreter);
+            resolver.Resolve(statements);
+
+            if (hadError) return;
+
             interpreter.Interpret(statements);
             // Console.WriteLine(new ASTPrinter().Print(expression));
         }
