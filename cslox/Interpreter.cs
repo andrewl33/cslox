@@ -73,6 +73,25 @@ namespace cslox
             return Evaluate(expr.right);
         }
 
+        object Expr.IVisitor<object>.VisitSetExpr(Expr.Set expr)
+        {
+            object obj = Evaluate(expr.obj);
+
+            if (!(obj is LoxInstance))
+            {
+                throw new RuntimeError(expr.name, "Only instances have fields.");
+            }
+
+            object value = Evaluate(expr.value);
+            ((LoxInstance)obj).Set(expr.name, value);
+            return value;
+        }
+
+        object Expr.IVisitor<object>.VisitThisExpr(Expr.This expr)
+        {
+            return LookUpVariable(expr.keyword, expr);
+        }
+
         object Expr.IVisitor<object>.VisitGroupingExpr(Expr.Grouping expr)
         {
             return Evaluate(expr.expression);
@@ -189,6 +208,17 @@ namespace cslox
 
             return function.Call(this, arguments);
         }
+
+        object Expr.IVisitor<object>.VisitGetExpr(Expr.Get expr)
+        {
+            object obj = Evaluate(expr.obj);
+            if (obj is LoxInstance)
+            {
+                return ((LoxInstance)obj).Get(expr.name);
+            }
+
+            throw new RuntimeError(expr.name, "Only instances have properties.");
+        }
         private object Evaluate(Expr expr)
         {
             return expr.Accept(this);
@@ -227,6 +257,22 @@ namespace cslox
             return null;
         }
 
+        object Stmt.IVisitor<object>.VisitClassStmt(Stmt.Class stmt)
+        {
+            environment.Define(stmt.name.lexeme, null);
+
+            Dictionary<string, LoxFunction> methods = new Dictionary<string, LoxFunction>();
+            foreach(Stmt.Function method in stmt.methods)
+            {
+                LoxFunction function = new LoxFunction(method, environment, method.name.lexeme.Equals("init"));
+                methods[method.name.lexeme] = function;
+            }
+
+            LoxClass klass = new LoxClass(stmt.name.lexeme, methods);
+            environment.Assign(stmt.name, klass);
+            return null;
+        }
+
         object Stmt.IVisitor<object>.VisitExpressionStmt(Stmt.Expression stmt)
         {
             object value = Evaluate(stmt.expression);
@@ -236,7 +282,7 @@ namespace cslox
 
         object Stmt.IVisitor<object>.VisitFunctionStmt(Stmt.Function stmt)
         {
-            LoxFunction function = new LoxFunction(stmt, environment);
+            LoxFunction function = new LoxFunction(stmt, environment, false);
             environment.Define(stmt.name.lexeme, function);
             return null;
         }

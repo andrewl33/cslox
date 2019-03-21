@@ -14,8 +14,19 @@ namespace cslox
         private enum FunctionType
         {
             NONE,
-            FUNCTION
+            FUNCTION,
+            METHOD,
+            INITIALIZER
         }
+
+        private enum ClassType
+        {
+            NONE,
+            CLASS
+        }
+
+        private ClassType currentClass = ClassType.NONE;
+
         public Resolver(Interpreter interpreter)
         {
             this.interpreter = interpreter;
@@ -26,6 +37,35 @@ namespace cslox
             BeginScope();
             Resolve(stmt.statements);
             EndScope();
+            return null;
+        }
+
+        object Stmt.IVisitor<object>.VisitClassStmt(Stmt.Class stmt)
+        {
+            ClassType enclosingClass = currentClass;
+            currentClass = ClassType.CLASS;
+
+            Declare(stmt.name);
+            Define(stmt.name);
+
+            BeginScope();
+            scopes.Peek()["this"] = true;
+
+            foreach(Stmt.Function method in stmt.methods)
+            {
+                FunctionType declaration = FunctionType.METHOD;
+
+                if (method.name.lexeme.Equals("init"))
+                {
+                    declaration = FunctionType.INITIALIZER;
+                }
+
+                ResolveFunction(method, declaration);
+            }
+
+            EndScope();
+
+            currentClass = enclosingClass;
             return null;
         }
 
@@ -68,6 +108,11 @@ namespace cslox
 
             if (stmt.value != null)
             {
+                if (currentFunction == FunctionType.INITIALIZER)
+                {
+                    Lox.Error(stmt.keyword, "Cannot return a value from an initializer.");
+                }
+
                 Resolve(stmt.value);
             }
 
@@ -119,6 +164,12 @@ namespace cslox
             return null;
         }
 
+        object Expr.IVisitor<object>.VisitGetExpr(Expr.Get expr)
+        {
+            Resolve(expr.obj);
+            return null;
+        }
+
         object Expr.IVisitor<object>.VisitGroupingExpr(Expr.Grouping expr)
         {
             Resolve(expr.expression);
@@ -134,6 +185,19 @@ namespace cslox
         {
             Resolve(expr.left);
             Resolve(expr.right);
+            return null;
+        }
+
+        object Expr.IVisitor<object>.VisitSetExpr(Expr.Set expr)
+        {
+            Resolve(expr.value);
+            Resolve(expr.obj);
+            return null;
+        }
+
+        object Expr.IVisitor<object>.VisitThisExpr(Expr.This expr)
+        {
+            ResolveLocal(expr, expr.keyword);
             return null;
         }
 
