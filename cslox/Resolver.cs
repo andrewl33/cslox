@@ -22,7 +22,8 @@ namespace cslox
         private enum ClassType
         {
             NONE,
-            CLASS
+            CLASS,
+            SUBCLASS
         }
 
         private ClassType currentClass = ClassType.NONE;
@@ -46,6 +47,15 @@ namespace cslox
             currentClass = ClassType.CLASS;
 
             Declare(stmt.name);
+
+            if (stmt.superclass != null)
+            {
+                currentClass = ClassType.SUBCLASS;
+                BeginScope();
+                scopes.Peek()["super"] = true;
+                Resolve(stmt.superclass);
+            }
+
             Define(stmt.name);
 
             BeginScope();
@@ -64,7 +74,7 @@ namespace cslox
             }
 
             EndScope();
-
+            if (stmt.superclass != null) EndScope();
             currentClass = enclosingClass;
             return null;
         }
@@ -192,6 +202,21 @@ namespace cslox
         {
             Resolve(expr.value);
             Resolve(expr.obj);
+            return null;
+        }
+
+        object Expr.IVisitor<object>.VisitSuperExpr(Expr.Super expr)
+        {
+            if (currentClass == ClassType.NONE)
+            {
+                Lox.Error(expr.keyword, "Cannot use 'super' outside of a class.");
+            }
+            else if (currentClass != ClassType.SUBCLASS)
+            {
+                Lox.Error(expr.keyword, "Cannot user 'super' in a class with no superclass");
+            }
+
+            ResolveLocal(expr, expr.keyword);
             return null;
         }
 

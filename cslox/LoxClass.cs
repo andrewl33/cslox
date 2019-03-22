@@ -7,11 +7,13 @@ namespace cslox
     public class LoxClass: LoxCallable
     {
         public readonly string name;
+        private readonly LoxClass superclass;
         private readonly Dictionary<string, LoxFunction> methods;
 
-        public LoxClass(string name, Dictionary<string, LoxFunction> methods)
+        public LoxClass(string name, LoxClass superclass, Dictionary<string, LoxFunction> methods)
         {
             this.name = name;
+            this.superclass = superclass;
             this.methods = methods;
         }
 
@@ -43,6 +45,11 @@ namespace cslox
             if (methods.ContainsKey(name))
             {
                 return methods[name].Bind(instance);
+            }
+            
+            if (superclass != null)
+            {
+                return superclass.FindMethod(instance, name);
             }
 
             return null;
